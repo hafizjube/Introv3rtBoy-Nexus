@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALCHEMIST NEXUS | Trading Terminal & Research Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0d14;
+      --bg-surface: #111622;
+      --bg-card: #161d2e;
+      --border: #222d44;
+      --text-main: #f1f5f9;
+      --text-muted: #8b9bb4;
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.15);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.15);
+      --cyan: #06b6d4;
+      --amber: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    code, pre, .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Navigation */
+    header {
+      background: rgba(17, 22, 34, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .nav-container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, var(--emerald), var(--cyan));
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      color: #000;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: 0.3rem;
+      border-radius: 8px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn.active, .nav-btn:hover {
+      background: var(--bg-card);
+      color: var(--text-main);
+    }
+
+    .nav-btn.active {
+      color: var(--emerald);
+      box-shadow: 0 0 12px var(--emerald-glow);
+    }
+
+    /* Container */
+    main {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    .tab-section {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out forwards;
+    }
+
+    .tab-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Dashboard Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 960px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Asset Selector Bar */
+    .selector-bar {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .asset-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.4rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .asset-pill.active {
+      background: var(--emerald-glow);
+      color: var(--emerald);
+      border-color: var(--emerald);
+    }
+
+    /* Chart Simulation */
+    .chart-wrapper {
+      position: relative;
+      height: 380px;
+      width: 100%;
+      background: #0d121c;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Strategy Telemetry */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .metric-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 0.75rem;
+      border-radius: 8px;
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .metric-value {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-top: 0.25rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .text-emerald { color: var(--emerald); }
+    .text-rose { color: var(--rose); }
+    .text-cyan { color: var(--cyan); }
+    .text-amber { color: var(--amber); }
+
+    /* Forms & Inputs */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 0.6rem 0.8rem;
+      border-radius: 6px;
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--cyan);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 6px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--emerald);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: #059669;
+    }
+
+    /* Portfolio Showcase */
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .project-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .project-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--cyan);
+    }
+
+    .project-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--cyan);
+      margin-bottom: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+
+    .project-title {
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .project-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.25rem;
+    }
+
+    .project-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Educational Section */
+    .academy-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .rule-item {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .rule-num {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <div class="nav-container">
+      <div class="brand">
+        <span>🧪 ALCHEMIST NEXUS</span>
+        <span class="brand-badge">TERMINAL v2.4</span>
+      </div>
+      <div class="nav-tabs">
+        <button class="nav-btn active" onclick="switchTab('dashboard')">Analytics Engine</button>
+        <button class="nav-btn" onclick="switchTab('portfolio')">Projects & Research</button>
+        <button class="nav-btn" onclick="switchTab('academy')">Strategy Academy</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main>
+
+    <!-- TAB 1: ANALYTICS ENGINE -->
+    <section id="tab-dashboard" class="tab-section active">
+      <div class="selector-bar">
+        <button class="asset-pill active" onclick="changeAsset('BTCUSDT', 68420.50, 67200.0, 69800.0)">BTC/USDT</button>
+        <button class="asset-pill" onclick="changeAsset('ETHUSDT', 3520.10, 3410.0, 3650.0)">ETH/USDT</button>
+        <button class="asset-pill" onclick="changeAsset('SOLUSDT', 182.40, 174.5, 192.0)">SOL/USDT</button>
+        <button class="asset-pill" onclick="changeAsset('XAUUSD', 2734.20, 2715.0, 2758.0)">XAU/USD (Gold)</button>
+        <button class="asset-pill" onclick="changeAsset('EURUSD', 1.0845, 1.0790, 1.0920)">EUR/USD</button>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Visualizer -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <span id="active-symbol">BTCUSDT</span>
+                <span class="mono text-muted" style="font-size: 0.8rem;">[15m Chart + Daily MSNR]</span>
+              </div>
+              <span class="mono text-emerald" id="live-cmp">$68,420.50</span>
+            </div>
+            
+            <div class="chart-wrapper">
+              <canvas id="tradingChart"></canvas>
+            </div>
+
+            <div class="metrics-grid">
+              <div class="metric-box">
+                <div class="metric-label">Daily Resistance</div>
+                <div class="metric-value text-rose" id="val-res">$69,800.00</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-label">Daily Support</div>
+                <div class="metric-value text-emerald" id="val-sup">$67,200.00</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-label">4H BOS Alignment</div>
+                <div class="metric-value text-cyan" id="val-bos">Bullish BOS</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-label">15m Sweep Engine</div>
+                <div class="metric-value text-amber" id="val-sweep">SSL Swept</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telegram Bot Integration Card -->
+          <div class="card" style="border-left: 4px solid var(--cyan);">
+            <div class="card-title" style="margin-bottom: 0.5rem;">🤖 Cloud Scanner Telemetry (@Introv3rtBoy_ems_bot)</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+              Active instance deployed as a 24/7 background worker. Continuously monitoring institutional MSNR body-to-wick reactions, multi-timeframe order flow, and 15m engulfing sweeps across crypto and forex pairs.
+            </p>
+          </div>
+        </div>
+
+        <!-- Position Calculator & Setup Form -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">⚖️ 1% Risk & Position Engine</div>
+            </div>
+            <div class="form-group">
+              <label>Account Equity ($)</label>
+              <input type="number" id="calc-equity" value="10000" oninput="calculateRisk()">
+            </div>
+            <div class="form-group">
+              <label>Risk Percentage (%)</label>
+              <input type="number" id="calc-risk" value="1.0" step="0.1" oninput="calculateRisk()">
+            </div>
+            <div class="form-group">
+              <label>Entry Price ($)</label>
+              <input type="number" id="calc-entry" value="68420" oninput="calculateRisk()">
+            </div>
+            <div class="form-group">
+              <label>Stop Loss ($)</label>
+              <input type="number" id="calc-stop" value="67850" oninput="calculateRisk()">
+            </div>
+
+            <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.8rem;">
+                <span class="text-muted">Dollar Risk:</span>
+                <span class="mono text-rose" id="res-risk-amt">$100.00</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.8rem;">
+                <span class="text-muted">Max Position Size:</span>
+                <span class="mono text-cyan" id="res-pos-size">0.175 BTC</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                <span class="text-muted">Position Value:</span>
+                <span class="mono" id="res-pos-val">$12,003.50</span>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="alert('Risk metrics validated against current MSNR bounds.')">Validate Setup</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: PROJECTS & RESEARCH -->
+    <section id="tab-portfolio" class="tab-section">
+      <div style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">Engineering & Scientific Research Portfolio</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Cross-disciplinary implementations in algorithmic trading bots, full-stack systems, and industrial optimization modeling.</p>
+      </div>
+
+      <div class="portfolio-grid">
+        <!-- Project 1 -->
+        <div class="project-card">
+          <div>
+            <span class="project-tag">TELEGRAM BOT • ALGORITHMIC TRADING</span>
+            <h3 class="project-title">Alchemist Multi-Asset Scanner Bot</h3>
+            <p class="project-desc">
+              Lightweight Telegram bot (`@Introv3rtBoy_ems_bot`) analyzing Binance Vision and Yahoo Finance REST feeds. Implements Daily/Weekly MSNR zones, 4H break-of-structure (BOS), and 15m liquidity sweep triggers with zero heavyweight C-dependencies.
+            </p>
+          </div>
+          <div class="project-footer">
+            <span class="mono text-emerald" style="font-size: 0.75rem;">Python / Render 24/7</span>
+            <span class="mono text-muted" style="font-size: 0.75rem;">Live Deployment</span>
+          </div>
+        </div>
+
+        <!-- Project 2 -->
+        <div class="project-card">
+          <div>
+            <span class="project-tag">OPTIMIZATION • FOOD SCIENCE & TECH</span>
+            <h3 class="project-title">Response Surface Methodology (RSM) Optimization</h3>
+            <p class="project-desc">
+              Mathematical modeling and optimization using Central Composite Design (CCD) for food formulations and industrial processing parameters. Evaluates multi-factor interaction surfaces and predictive regressions.
+            </p>
+          </div>
+          <div class="project-footer">
+            <span class="mono text-cyan" style="font-size: 0.75rem;">CCD / Statistical Analysis</span>
+            <span class="mono text-muted" style="font-size: 0.75rem;">Research Paper</span>
+          </div>
+        </div>
+
+        <!-- Project 3 -->
+        <div class="project-card">
+          <div>
+            <span class="project-tag">WEB PLATFORM • EDUCATION</span>
+            <h3 class="project-title">NAFSTS Student Academic Portal</h3>
+            <p class="project-desc">
+              Interactive educational resource and distribution platform created for students, featuring categorized study handouts, automated real-time quizzes, and administrative communications.
+            </p>
+          </div>
+          <div class="project-footer">
+            <span class="mono text-amber" style="font-size: 0.75rem;">JavaScript / UI Design</span>
+            <span class="mono text-muted" style="font-size: 0.75rem;">Production</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: STRATEGY ACADEMY -->
+    <section id="tab-academy" class="tab-section">
+      <div style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">Alchemist Strategy Rulebook</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Systematic rules for top-down institutional market structure and liquidity analysis.</p>
+      </div>
+
+      <div class="academy-card">
+        <div class="rule-item">
+          <div class="rule-num">1</div>
+          <div>
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem;">HTF MSNR Identification (Weekly & Daily)</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              Locate genuine 'A' peak resistances and 'V' valley supports. The core institutional price level is marked from the candle's open/close body boundary up to its highest or lowest wick extreme.
+            </p>
+          </div>
+        </div>
+
+        <div class="rule-item" style="margin-top: 1.5rem;">
+          <div class="rule-num">2</div>
+          <div>
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Mid-TF Structural Alignment (4-Hour BOS)</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              Confirm bias by awaiting a clean Break of Structure (BOS) on the 4H timeframe. Do not chase breakouts; wait for structural trend confirmation in alignment with the higher timeframe storyline.
+            </p>
+          </div>
+        </div>
+
+        <div class="rule-item" style="margin-top: 1.5rem;">
+          <div class="rule-num">3</div>
+          <div>
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem;">LTF Execution Trigger (15m Liquidity Sweeps)</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              When price reaches an HTF MSNR zone, execute only after Sell-Side (SSL) or Buy-Side (BSL) liquidity is purged on the 15m timeframe, followed immediately by an engulfing rejection pattern.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>ALCHEMIST NEXUS • Engineered for systematic algorithmic trading and scientific research.</p>
+  </footer>
+
+  <!-- Script Engine -->
+  <script>
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.target.classList.add('active');
+
+      if (tabId === 'dashboard') {
+        renderChart();
+      }
+    }
+
+    // Asset Selection
+    function changeAsset(sym, cmp, sup, res) {
+      document.querySelectorAll('.asset-pill').forEach(el => el.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById('active-symbol').innerText = sym;
+      document.getElementById('live-cmp').innerText = '$' + cmp.toLocaleString();
+      document.getElementById('val-sup').innerText = '$' + sup.toLocaleString();
+      document.getElementById('val-res').innerText = '$' + res.toLocaleString();
+      
+      document.getElementById('calc-entry').value = cmp;
+      document.getElementById('calc-stop').value = (cmp * 0.99).toFixed(2);
+      
+      calculateRisk();
+      renderChart();
+    }
+
+    // Risk Calculator
+    function calculateRisk() {
+      const eq = parseFloat(document.getElementById('calc-equity').value) || 0;
+      const riskPct = parseFloat(document.getElementById('calc-risk').value) || 0;
+      const entry = parseFloat(document.getElementById('calc-entry').value) || 0;
+      const stop = parseFloat(document.getElementById('calc-stop').value) || 0;
+
+      const riskAmt = eq * (riskPct / 100);
+      document.getElementById('res-risk-amt').innerText = '$' + riskAmt.toFixed(2);
+
+      const distance = Math.abs(entry - stop);
+      if (distance > 0) {
+        const units = riskAmt / distance;
+        document.getElementById('res-pos-size').innerText = units.toFixed(4) + ' units';
+        document.getElementById('res-pos-val').innerText = '$' + (units * entry).toFixed(2);
+      }
+    }
+
+    // Canvas Chart Rendering
+    function renderChart() {
+      const canvas = document.getElementById('tradingChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid Lines
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let y = 40; y < h; y += 50) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // MSNR Resistance Zone (Top)
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.12)';
+      ctx.fillRect(0, 30, w, 35);
+      ctx.fillStyle = '#f43f5e';
+      ctx.font = '11px JetBrains Mono';
+      ctx.fillText('HTF DAILY RESISTANCE (MSNR ZONE)', 15, 52);
+
+      // MSNR Support Zone (Bottom)
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+      ctx.fillRect(0, h - 65, w, 35);
+      ctx.fillStyle = '#10b981';
+      ctx.fillText('HTF DAILY SUPPORT (MSNR ZONE)', 15, h - 42);
+
+      // Stylized Candlestick Stream
+      const candleWidth = 10;
+      const candleGap = 18;
+      const startX = 40;
+      const count = Math.floor((w - 60) / candleGap);
+
+      let price = h / 2;
+      for (let i = 0; i < count; i++) {
+        const x = startX + i * candleGap;
+        const change = (Math.sin(i * 0.4) * 12) + (Math.random() * 16 - 8);
+        const open = price;
+        const close = open + change;
+        const high = Math.min(open, close) - Math.random() * 14;
+        const low = Math.max(open, close) + Math.random() * 14;
+
+        const isGreen = close >= open;
+        ctx.strokeStyle = isGreen ? '#10b981' : '#f43f5e';
+        ctx.fillStyle = isGreen ? '#10b981' : '#f43f5e';
+
+        // Wick
+        ctx.beginPath();
+        ctx.moveTo(x + candleWidth / 2, high);
+        ctx.lineTo(x + candleWidth / 2, low);
+        ctx.stroke();
+
+        // Body
+        ctx.fillRect(x, Math.min(open, close), candleWidth, Math.max(Math.abs(close - open), 2));
+        price = close;
+      }
+    }
+
+    window.addEventListener('resize', renderChart);
+    window.addEventListener('DOMContentLoaded', () => {
+      calculateRisk();
+      renderChart();
+    });
+  </script>
+</body>
+</html>
